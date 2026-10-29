@@ -1,0 +1,5 @@
+examples/secure_coding/*.java linguist-documentation=false
+examples/secure_coding/*.js linguist-documentation=false
+examples/secure_coding/*.php linguist-documentation=false
+examples/secure_coding/*.py linguist-documentation=false
+examples/secure_coding/*.go linguist-documentation=false
