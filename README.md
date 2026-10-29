@@ -1,26 +1,20 @@
 
 # code by mobeiemi (duy phuc)
-# Security Tool
+# Website Security Checker
 
-A simple tool to check for vulnerabilities such as XSS, SQL Injection, and others. This script is designed for educational purposes to help understand and secure your web applications.
+Công cụ Python kiểm tra một số header bảo mật và minh họa cách phòng tránh SQL injection, XSS, command injection, path traversal bằng Python, JavaScript, PHP, Java và Go.
 
----
+## Chạy
 
-## **Getting Started**
+```powershell
+python -m pip install requests
+python security.py
+```
 
-### Prerequisites
-- Python 3.x
-- `requests` library installed
+Chỉ quét website bạn sở hữu hoặc được phép kiểm tra. Một số phép thử có gửi request chủ động; ưu tiên môi trường thử nghiệm.
 
-### Installation
+Ví dụ secure coding nằm trong [`examples/secure_coding`](./examples/secure_coding). Chạy kiểm thử:
 
-1. Clone this repository or download the script files.
-
-   ```bash
-   git clone https://github.com/duyphuc1911/check-security-website.git
-   cd security-tool
-
-2. Run
-
-  ```bash
-  python security.py
+```powershell
+python -m unittest discover -s tests -v
+```
