@@ -10,6 +10,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin
 from urllib.parse import urlparse, quote
+from security_headers import audit_security_headers
 
 logging.basicConfig(
     filename="sql_injection_check.log",
@@ -630,10 +631,28 @@ def check_cve_2023_3519(url):
         logging.info("No CVE-2023-3519 vulnerability found.")
 
 
+def check_security_headers(url):
+    print("\n[+] Checking passive HTTP security headers...")
+    try:
+        results = audit_security_headers(url)
+    except requests.RequestException as e:
+        print(f"  [!] Could not inspect HTTP security headers: {e}")
+        logging.error(f"HTTP security header check failed for {url}: {e}")
+        return
+
+    for result in results:
+        print(f"  [{result['status']}] {result['check']}: {result['message']}")
+        if result["status"] == "WARN":
+            logging.warning(f"{result['check']}: {result['message']}")
+        else:
+            logging.info(f"{result['check']}: {result['message']}")
+
+
 # website
 def scan_website(url):
     print(f"\n[+] Starting website vulnerability scan for: {url}\n")
 
+    check_security_headers(url)
     check_sql_injection(url)
     check_xss(url)
     check_command_injection(url)
@@ -660,4 +679,3 @@ if __name__ == "__main__":
             scan_website(target_url)
         except Exception as e:
             print(f"[-] An error occurred: {e}")
-
